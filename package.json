@@ -1,0 +1,23 @@
+{
+  "name": "watch-list",
+  "version": "0.0.19",
+  "description": "Self-hosted anime/show tracker with add-by-link metadata fetching",
+  "private": true,
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "cheerio": "^1.0.0",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^2.2.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

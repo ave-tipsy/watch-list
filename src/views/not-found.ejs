@@ -1,0 +1,9 @@
+<%- include('partials/header') %>
+
+<div class="empty-state">
+  <div class="empty-icon"><%- emoji('magnify-left') %></div>
+  <p><%= t('common.notFound') %></p>
+  <a href="/entries" class="btn-secondary"><%= t('entry.backLink') %></a>
+</div>
+
+<%- include('partials/footer') %>

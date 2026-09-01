@@ -1,0 +1,39 @@
+version: "3"
+services:
+  watch-list:
+    image: necroave/watch-list:0.0.19
+    container_name: watch-list
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - ./data:/data
+    environment:
+      # The port is set from the outside via the PORT env var (e.g. in a
+      # .env file next to this one, or PORT=8080 docker compose up) — the
+      # same port is published and listened on inside the container, no
+      # other change needed.
+      PORT: "${PORT:-3000}"
+      # Optional: if left unset, the server generates a secret on first run
+      # and stores it in the volume (./data/session-secret.txt) — it
+      # survives restarts/rebuilds. Set it explicitly only if you need a
+      # fixed secret known in advance (e.g. shared across multiple
+      # instances) — and if you do, always use a random string
+      # (openssl rand -hex 32), never something predictable, and never
+      # commit a real value here.
+      # SESSION_SECRET: ""
+      # false (default) — single-user mode: no login, straight to the entries list.
+      # true — multi-user mode: login/registration, each account has its own list.
+      ALLOW_REGISTRATIONS: "false"
+      #
+      # Below are the limits at their default values (the same ones that
+      # apply if you don't set them at all) — shown here so you can see and
+      # tune them for your own deployment. A garbage/non-numeric value is
+      # silently ignored (the default is used) instead of breaking the server.
+      MAX_COVER_UPLOAD_MB: "10"   # cover file uploaded from disk
+      MAX_COVER_FETCH_MB: "20"    # cover downloaded from a pasted link
+      MAX_BACKUP_MB: "100"        # uploaded backup file
+      SESSION_MAX_AGE_DAYS: "30"  # how long the session cookie lives
+      FETCH_TIMEOUT_MS: "8000"    # timeout for requests to the metadata/cover source site
+      LOGIN_MAX_ATTEMPTS: "10"    # login attempts per IP before rate-limiting (multi-user mode)
+      LOGIN_WINDOW_MINUTES: "10"  # window (in minutes) the attempts above are counted over
+    restart: unless-stopped

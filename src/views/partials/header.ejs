@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="<%= locale %>">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Watch List</title>
+  <script src="/theme-init.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>%F0%9F%93%BA</text></svg>" />
+  <link rel="stylesheet" href="/style.css" />
+  <script type="application/json" id="i18n-data"><%- JSON.stringify(i18nDict) %></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand" href="/entries"><span class="brand-mark"><%- emoji('tv') %></span>Watch List</a>
+      <div class="list-switcher" id="list-switcher">
+        <button type="button" id="list-switcher-btn" class="btn-secondary" title="<%= t('list.switcherTitle') %>">
+          <%- emoji('folder') %> <span id="list-switcher-label"><%= activeList %></span>
+        </button>
+        <div class="list-switcher-dropdown" id="list-switcher-dropdown" hidden>
+          <form method="post" action="/settings/list" class="list-switcher-input-row">
+            <input
+              type="text"
+              name="name"
+              id="list-switcher-input"
+              placeholder="<%= t('list.newPlaceholder') %>"
+              maxlength="50"
+              autocomplete="off"
+            />
+            <button type="submit" class="btn-secondary">✓</button>
+          </form>
+          <% if (knownLists.length) { %>
+            <div class="list-switcher-list" id="list-switcher-list">
+              <% knownLists.forEach((l) => { %>
+                <div class="list-switcher-option-row" data-list-name="<%= l.name.toLowerCase() %>">
+                  <div class="list-switcher-view">
+                    <form method="post" action="/settings/list" class="list-switcher-option-form">
+                      <input type="hidden" name="list_id" value="<%= l.id %>" />
+                      <button type="submit" class="list-switcher-option <%= l.id === activeListId ? 'active' : '' %>">
+                        <%= l.name %> <span class="list-switcher-count"><%= l.n %></span>
+                      </button>
+                    </form>
+                    <% if (!l.isDefault) { %>
+                      <button
+                        type="button"
+                        class="chip-remove list-switcher-rename-btn"
+                        aria-label="<%= t('list.renameAria', { name: l.name }) %>"
+                      ><%- emoji('pencil') %></button>
+                      <form method="post" action="/settings/list/delete" class="list-switcher-delete-form">
+                        <input type="hidden" name="list_id" value="<%= l.id %>" />
+                        <button
+                          type="submit"
+                          class="chip-remove list-switcher-delete js-confirm"
+                          aria-label="<%= t('list.deleteAria', { name: l.name }) %>"
+                          data-confirm="<%= t('list.deleteConfirm', { name: l.name, count: l.n }) %>"
+                        ><%- emoji('trash') %></button>
+                      </form>
+                    <% } %>
+                  </div>
+                  <% if (!l.isDefault) { %>
+                    <form method="post" action="/settings/list/rename" class="list-switcher-rename-form" hidden>
+                      <input type="hidden" name="list_id" value="<%= l.id %>" />
+                      <input
+                        type="text"
+                        name="new_name"
+                        value="<%= l.name %>"
+                        maxlength="50"
+                        autocomplete="off"
+                        class="list-switcher-rename-input"
+                      />
+                      <button type="submit" class="chip-remove" title="<%= t('common.save') %>">✓</button>
+                      <button type="button" class="chip-remove list-switcher-rename-cancel" title="<%= t('common.cancel') %>">✕</button>
+                    </form>
+                  <% } %>
+                </div>
+              <% }) %>
+            </div>
+          <% } %>
+          <p class="hint list-switcher-hint"><%= t('list.about') %></p>
+        </div>
+      </div>
+    </div>
+    <nav class="topnav">
+      <% if (currentUser) { %>
+        <span class="user"><%= t('nav.greeting', { name: currentUser }) %></span>
+        <form method="post" action="/logout"><button class="link-btn" type="submit"><%= t('nav.logout') %></button></form>
+      <% } %>
+      <div class="settings-menu" id="settings-menu">
+        <button type="button" id="settings-toggle-btn" class="icon-btn" title="<%= t('settings.title') %>" aria-label="<%= t('settings.title') %>"><%- emoji('gear') %></button>
+        <div class="settings-dropdown" id="settings-dropdown" hidden>
+          <div class="settings-section">
+            <span class="settings-label"><%= t('settings.theme') %></span>
+            <div class="settings-btn-row" id="theme-switch">
+              <button type="button" class="settings-opt" data-theme-choice="light" title="<%= t('settings.themeLight') %>"><%- emoji('sun') %></button>
+              <button type="button" class="settings-opt" data-theme-choice="dark" title="<%= t('settings.themeDark') %>"><%- emoji('moon') %></button>
+              <button type="button" class="settings-opt" data-theme-choice="auto" title="<%= t('settings.themeAuto') %>"><%- emoji('desktop') %></button>
+            </div>
+          </div>
+          <div class="settings-section">
+            <span class="settings-label"><%= t('settings.language') %></span>
+            <form method="post" action="/settings/lang" class="settings-btn-row">
+              <button type="submit" name="lang" value="ru" class="settings-opt <%= locale === 'ru' ? 'active' : '' %>">RU</button>
+              <button type="submit" name="lang" value="en" class="settings-opt <%= locale === 'en' ? 'active' : '' %>">EN</button>
+            </form>
+          </div>
+          <div class="settings-section">
+            <span class="settings-label"><%= t('settings.backup') %></span>
+            <div class="settings-backup-row">
+              <a
+                href="/backup/export"
+                class="settings-icon-btn icon-tooltip"
+                aria-label="<%= t('backup.export') %>"
+                data-tooltip="<%= t('backup.export') %>"
+              ><%- emoji('inbox-tray') %></a>
+              <form method="post" action="/backup/import" enctype="multipart/form-data" id="backup-import-form">
+                <input type="file" name="backup_file" id="backup-file-input" accept=".gz,.json" class="file-input-hidden" />
+                <button
+                  type="button"
+                  id="backup-import-btn"
+                  class="settings-icon-btn icon-tooltip"
+                  aria-label="<%= t('backup.import') %>"
+                  data-tooltip="<%= t('backup.import') %>"
+                ><%- emoji('outbox-tray') %></button>
+              </form>
+            </div>
+            <p class="hint"><%= t('backup.importInto', { list: activeList }) %></p>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </header>
+  <main class="container">

@@ -1,0 +1,55 @@
+{
+  "name": "watch-list-desktop",
+  "version": "0.0.19",
+  "description": "Windows wrapper around single-user watch-list (Electron)",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "sync": "node scripts/sync-src.js",
+    "start": "npm run sync && electron .",
+    "rebuild": "electron-builder install-app-deps",
+    "dist:win": "npm run sync && node scripts/fetch-win-natives.js && electron-builder --win"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.3.0",
+    "cheerio": "^1.0.0",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^2.2.0"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.necroave.watchlist",
+    "productName": "Watch List",
+    "npmRebuild": false,
+    "asar": true,
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "files": [
+      "main.js",
+      "app/**/*",
+      "node_modules/**/*",
+      "!app/data/**"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        "zip",
+        "portable"
+      ]
+    }
+  },
+  "allowScripts": {
+    "better-sqlite3@11.10.0": true,
+    "electron@32.3.3": true
+  }
+}

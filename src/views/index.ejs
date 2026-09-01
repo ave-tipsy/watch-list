@@ -1,0 +1,181 @@
+<%- include('partials/header') %>
+
+<% const labels = { planned: t('status.planned'), watching: t('status.watching'), watched: t('status.watched'), dropped: t('status.dropped') }; %>
+<% const total = Object.values(counts).reduce((a, b) => a + b, 0); %>
+<% const searchIndex = (e) => [e.title, e.description, e.genres, e.source_domain, e.note].filter(Boolean).join(' ').toLowerCase(); %>
+<% const MAX_CHIPS = 3; %>
+<% const coverSrcOf = (e) => (e.cover_blob ? `/entries/${e.id}/cover?v=${new Date(e.updated_at).getTime()}` : e.cover_url); %>
+
+<% if (backupResult) { %>
+  <% if (backupResult.error) { %>
+    <p class="error"><%= backupResult.tooBig ? t('backup.errTooBig', { max: backupResult.maxMb }) : t('backup.errInvalid') %></p>
+  <% } else { %>
+    <p class="notice"><%= t('backup.importResult', { list: backupResult.listName, added: backupResult.added, skipped: backupResult.skipped }) %></p>
+  <% } %>
+<% } %>
+
+<% if (listFlash && listFlash.error) { %>
+  <p class="error"><%= t(listFlash.error === 'tooMany' ? 'list.errTooMany' : 'list.errDuplicate', { max: listsLimit }) %></p>
+<% } %>
+
+<div class="toolbar">
+  <nav class="tabs">
+    <a href="/entries" class="<%= !activeStatus ? 'active' : '' %>"><%= t('list.allTab', { n: total }) %></a>
+    <% for (const s of ['planned','watching','watched','dropped']) { %>
+      <a href="/entries?status=<%= s %>" class="<%= activeStatus === s ? 'active' : '' %>">
+        <%= labels[s] %> (<%= counts[s] || 0 %>)
+      </a>
+    <% } %>
+  </nav>
+
+  <div class="toolbar-actions">
+    <label class="search-box">
+      <span class="search-icon"><%- emoji('magnify-right') %></span>
+      <input type="search" id="search-input" placeholder="<%= t('list.searchPlaceholder') %>" <% if (entries.length === 0) { %>disabled<% } %> />
+    </label>
+    <div class="view-toggle" role="group" aria-label="<%= t('list.sortAria') %>">
+      <button type="button" id="sort-date-btn" class="view-btn" title="<%= t('list.sortByDate') %>"><%- emoji('calendar') %></button>
+      <button type="button" id="sort-title-btn" class="view-btn" title="<%= t('list.sortByTitle') %>"><%- emoji('input-latin-upper') %></button>
+    </div>
+    <div class="view-toggle" role="group" aria-label="<%= t('list.viewAria') %>">
+      <button type="button" id="view-grid-btn" class="view-btn" title="<%= t('list.viewGrid') %>">▦</button>
+      <button type="button" id="view-table-btn" class="view-btn" title="<%= t('list.viewTable') %>">☰</button>
+    </div>
+    <button type="button" id="add-open-btn" class="icon-btn icon-btn-accent" title="<%= t('add.openBtn') %>"><%- emoji('plus') %></button>
+  </div>
+</div>
+
+<dialog id="add-dialog" class="add-dialog" <% if (addModal.open) { %>data-reopen="1"<% } %>>
+  <form method="post" action="/entries" class="form" id="add-form">
+    <h2><%= t('add.dialogTitle') %></h2>
+
+    <% if (addModal.message) { %><p class="error"><%= addModal.message %></p><% } %>
+
+    <% if (addModal.duplicate) { %>
+      <p class="notice">
+        <%= t('add.alreadyInList') %> <a href="/entries/<%= addModal.duplicate.id %>"><%= addModal.duplicate.title %></a>
+        — <%= t('add.statusSuffix', { status: labels[addModal.duplicate.status] }) %><% if (addModal.duplicate.rating) { %><%= t('add.ratingSuffix', { rating: addModal.duplicate.rating }) %><% } %>.
+      </p>
+    <% } %>
+
+    <% if (addModal.titleDuplicates && addModal.titleDuplicates.length) { %>
+      <p class="notice">
+        <%= addModal.titleDuplicates.length > 1 ? t('add.similarPlural') : t('add.similarSingular') %>
+        <% addModal.titleDuplicates.forEach((d, i) => { %><% if (i > 0) { %>, <% } %><a href="/entries/<%= d.id %>"><%= d.title %></a>
+          (<%= labels[d.status] %><% if (d.rating) { %>, <%= d.rating %>/10<% } %>)<% }) %>.
+        <%= t('add.addAnywayQ') %>
+      </p>
+      <input type="hidden" name="confirm_duplicate" value="1" />
+    <% } %>
+
+    <input type="hidden" name="url" id="add-carried-url" value="<%= addModal.needsManual ? addModal.url : '' %>" />
+    <label id="add-query-label">
+      <span id="add-query-label-text"><%= addModal.needsManual ? t('add.manualLabel') : t('add.queryLabel') %></span>
+      <input
+        type="text"
+        name="query"
+        id="add-query-input"
+        value="<%= addModal.query || '' %>"
+        placeholder="<%= addModal.needsManual ? t('add.manualPlaceholder') : t('add.queryPlaceholder') %>"
+        <% if (addModal.needsManual) { %>required<% } %>
+        autofocus
+      />
+    </label>
+
+    <div class="dialog-actions">
+      <button type="button" id="add-cancel-btn" class="btn-secondary"><%= t('common.cancel') %></button>
+      <button type="submit" id="add-submit-btn"><%= (addModal.titleDuplicates && addModal.titleDuplicates.length) ? t('add.addAnyway') : t('common.add') %></button>
+    </div>
+  </form>
+</dialog>
+
+<% if (entries.length === 0) { %>
+  <div class="empty-state">
+    <div class="empty-icon"><%- emoji('clapper') %></div>
+    <p><%= t('list.emptyState') %></p>
+  </div>
+<% } else { %>
+  <p id="search-empty" class="muted" hidden><%= t('search.notFound') %></p>
+
+  <div class="grid" id="view-grid">
+    <% for (const e of entries) { %>
+      <div class="card" data-search="<%= searchIndex(e) %>" data-title="<%= e.title.toLowerCase() %>" data-added="<%= e.created_at %>">
+        <a class="card-media" href="/entries/<%= e.id %>">
+          <div class="cover">
+            <% if (e.cover_blob || e.cover_url) { %>
+              <img class="cover-blur-bg" src="<%= coverSrcOf(e) %>" alt="" aria-hidden="true" loading="lazy" />
+              <img class="cover-img js-cover-fallback cover-main-img" src="<%= coverSrcOf(e) %>" alt="" loading="lazy" />
+            <% } else { %>
+              <div class="cover-placeholder"><%= t('cover.none') %></div>
+            <% } %>
+            <span class="badge badge-<%= e.status %>"><%= labels[e.status] %></span>
+            <% if (e.rating) { %><span class="badge badge-rating">★ <%= e.rating %></span><% } %>
+          </div>
+          <div class="card-body">
+            <div class="card-title"><%= e.title %></div>
+            <div class="chip-row card-chip-row">
+              <% if (e.genres) {
+                   const gs = e.genres.split(',').map((g) => g.trim()).filter(Boolean);
+              %>
+                <% for (const g of gs.slice(0, MAX_CHIPS)) { %><span class="chip"><%= g %></span><% } %>
+                <% if (gs.length > MAX_CHIPS) { %><span class="chip chip-more">…</span><% } %>
+              <% } %>
+            </div>
+          </div>
+        </a>
+        <div class="card-footer">
+          <span class="card-date muted" title="<%= t('common.createdAt') %>"><%= formatDate(e.created_at) %></span>
+          <% if (e.source_url) { %>
+            <a class="card-source" href="<%= e.source_url %>" target="_blank" rel="noopener noreferrer"><%= e.source_domain %></a>
+          <% } else { %>
+            <span class="card-source muted"><%= t('common.manually') %></span>
+          <% } %>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="table-wrap" id="view-table" hidden>
+    <table class="table-view">
+      <thead>
+        <tr>
+          <th class="table-cover-col"></th>
+          <th class="table-title-col"><%= t('common.title') %></th>
+          <th class="table-genres-col"><%= t('common.genres') %></th>
+          <th class="table-status-col"><%= t('common.status') %></th>
+          <th class="table-rating-col"><%= t('common.rating') %></th>
+          <th class="table-created-col"><%= t('list.createdAtColumn') %></th>
+          <th class="table-source-col"><%= t('common.source') %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const e of entries) { %>
+          <tr class="table-row" data-href="/entries/<%= e.id %>" data-search="<%= searchIndex(e) %>" data-title="<%= e.title.toLowerCase() %>" data-added="<%= e.created_at %>">
+            <td class="table-cover">
+              <% if (e.cover_blob || e.cover_url) { %>
+                <div class="table-cover-inner">
+                  <img class="cover-blur-bg" src="<%= coverSrcOf(e) %>" alt="" aria-hidden="true" loading="lazy" />
+                  <img class="cover-img js-cover-fallback cover-main-img" src="<%= coverSrcOf(e) %>" alt="" loading="lazy" />
+                </div>
+              <% } else { %>
+                <div class="cover-placeholder">—</div>
+              <% } %>
+            </td>
+            <td><a class="table-title-clamp" href="/entries/<%= e.id %>" title="<%= e.title %>"><%= e.title %></a></td>
+            <td class="muted"><span class="table-truncate"><%= e.genres ? e.genres.split(',').slice(0, 3).join(', ') : '—' %></span></td>
+            <td><span class="badge badge-inline badge-<%= e.status %>"><%= labels[e.status] %></span></td>
+            <td><%= e.rating ? `★ ${e.rating}/10` : '—' %></td>
+            <td class="muted"><span class="table-truncate"><%= formatDate(e.created_at) %></span></td>
+            <td class="muted">
+              <% if (e.source_url) { %>
+                <a class="table-truncate" href="<%= e.source_url %>" target="_blank" rel="noopener noreferrer" title="<%= e.source_domain %>"><%= e.source_domain %></a>
+              <% } else { %><%= t('common.manually') %><% } %>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

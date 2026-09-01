@@ -1,0 +1,26 @@
+<div class="genre-picker" id="genre-picker" data-entry-id="<%= entry.id %>">
+  <div class="chip-row" id="genre-chip-row">
+    <% if (entry.genres) { %>
+      <% for (const g of entry.genres.split(',')) { %>
+        <% const gt = g.trim(); %>
+        <% if (gt) { %>
+          <span class="chip chip-removable" data-genre="<%= gt %>"><%= gt %><button type="button" class="chip-remove" aria-label="<%= t('genre.removeAria', { genre: gt }) %>">×</button></span>
+        <% } %>
+      <% } %>
+    <% } %>
+    <button type="button" class="chip chip-add" id="genre-add-btn" aria-label="<%= t('genre.addAria') %>"><%- emoji('plus') %></button>
+  </div>
+  <div class="genre-dropdown" id="genre-dropdown" hidden>
+    <div class="genre-dropdown-input-row">
+      <input type="text" id="genre-new-input" placeholder="<%= t('genre.newPlaceholder') %>" />
+      <button type="button" id="genre-new-add-btn" class="btn-secondary"><%- emoji('plus') %></button>
+    </div>
+    <% if (knownGenres && knownGenres.length) { %>
+      <div class="genre-dropdown-list">
+        <% for (const g of knownGenres) { %>
+          <button type="button" class="genre-option" data-genre="<%= g %>"><%= g %></button>
+        <% } %>
+      </div>
+    <% } %>
+  </div>
+</div>

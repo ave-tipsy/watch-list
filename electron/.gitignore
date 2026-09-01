@@ -1,0 +1,9 @@
+node_modules/
+app/
+data/
+*.log
+
+# Windows build artifacts (see README.md — "Distributing builds"): the zip
+# exceeds GitHub's 100MB per-file limit for a normal git push, so these are
+# meant to be attached to a GitHub Release, not committed to the repo.
+dist/

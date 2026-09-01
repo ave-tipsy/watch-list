@@ -1,0 +1,954 @@
+/* Dark is the default palette (bare :root); [data-theme="light"] overrides
+   it. theme-init.js resolves "auto" to a concrete attribute before paint,
+   so no prefers-color-scheme media query is needed here at all. */
+:root {
+  --bg: #12141a;
+  --bg-elevated: #181b23;
+  --bg-card: #1c1f29;
+  --border: #2a2e3a;
+  --border-hover: #3a4258;
+  --text: #edeef2;
+  --text-muted: #8d93a3;
+  --accent: #7c9cff;
+  --accent-2: #a78bfa;
+  --link: #7c9cff;
+  --danger: #f0728a;
+  --success: #5ecf8f;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.22);
+  --shadow-card-hover: 0 10px 24px rgba(0, 0, 0, 0.28);
+  --topbar-bg: rgba(18, 20, 26, 0.7);
+  --cover-ph-1: #232734;
+  --cover-ph-2: #1a1d26;
+}
+
+:root[data-theme="light"] {
+  --bg: #f5f6fa;
+  --bg-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --border: #e1e4ec;
+  --border-hover: #c7cddb;
+  --text: #1a1d27;
+  --text-muted: #5b6272;
+  --link: #3b56d9;
+  --danger: #c6294f;
+  --success: #1f8f57;
+  --shadow-card: 0 1px 3px rgba(20, 24, 40, 0.08);
+  --shadow-card-hover: 0 10px 24px rgba(20, 24, 40, 0.12);
+  --topbar-bg: rgba(255, 255, 255, 0.75);
+  --cover-ph-1: #eef0f6;
+  --cover-ph-2: #e2e5ee;
+}
+
+* { box-sizing: border-box; }
+
+/* Scrollbar gutter is always reserved, even when not needed — otherwise the
+   centered .container (margin:0 auto) shifts by its width every time page
+   height crosses the show/hide threshold (switching the status filter,
+   opening a dialog, etc.) — that reads as a "jumping" layout. */
+html { scrollbar-gutter: stable; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(1100px 500px at 15% -10%, rgba(124, 156, 255, 0.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(167, 139, 250, 0.08), transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Twemoji instead of system emoji — always sized 1em relative to the
+   current font-size, so it scales with surrounding text/buttons naturally. */
+.emoji {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.15em;
+  display: inline-block;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--topbar-bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(6px);
+}
+
+.topbar-left { display: flex; align-items: center; gap: 14px; min-width: 0; }
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+.brand:hover { text-decoration: none; }
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  font-size: 1rem;
+}
+
+.topnav { display: flex; align-items: center; gap: 14px; }
+.user { color: var(--text-muted); font-size: 0.88rem; }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--link);
+  cursor: pointer;
+  font-size: 0.88rem;
+  padding: 0;
+}
+
+.container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+}
+
+.auth-box {
+  max-width: 360px;
+  margin: 48px auto;
+}
+.auth-box h1 { margin-top: 0; }
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.form .row {
+  display: flex;
+  gap: 16px;
+}
+.form .row label { flex: 1; min-width: 0; }
+
+input, textarea, select, button {
+  font-family: inherit;
+  font-size: 0.98rem;
+}
+
+input[type="text"], input[type="password"], input[type="url"], textarea, select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 156, 255, 0.18);
+}
+
+textarea { resize: vertical; }
+
+button {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #10121a;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+button:hover { filter: brightness(1.08); }
+button:active { transform: translateY(1px); }
+
+button.danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+button.danger:hover { background: rgba(240, 114, 138, 0.1); filter: none; }
+
+.muted { color: var(--text-muted); }
+.optional { font-weight: 400; opacity: 0.75; }
+.muted.small { font-size: 0.8rem; margin: -8px 0 0; }
+.error {
+  background: rgba(240, 114, 138, 0.1);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 11px 15px;
+  border-radius: var(--radius-sm);
+  margin: 10px 0 0;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-secondary:hover { border-color: var(--border-hover); text-decoration: none; filter: none; }
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.toolbar-actions { display: flex; align-items: center; gap: 10px; }
+
+.view-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.view-btn {
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border: none;
+  border-radius: 0;
+  padding: 8px 12px;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.view-btn + .view-btn { border-left: 1px solid var(--border); }
+.view-btn:hover { filter: none; color: var(--text); }
+.view-btn.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #10121a;
+}
+
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 156, 255, 0.18); }
+.search-icon { font-size: 0.9rem; opacity: 0.8; }
+.search-box input[type="search"] {
+  border: none;
+  background: none;
+  padding: 9px 0;
+  width: 200px;
+  color: var(--text);
+}
+.search-box input[type="search"]:focus { outline: none; box-shadow: none; }
+.search-box input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tabs a {
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.tabs a:hover { text-decoration: none; border-color: var(--border-hover); color: var(--text); }
+.tabs a.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #10121a;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.add-dialog {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: min(440px, 92vw);
+  box-shadow: var(--shadow-card-hover);
+}
+.add-dialog::backdrop { background: rgba(8, 9, 13, 0.6); backdrop-filter: blur(2px); }
+.add-dialog h2 { margin: 0 0 4px; font-size: 1.15rem; }
+.add-dialog .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
+.notice {
+  background: rgba(124, 156, 255, 0.1);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  padding: 11px 15px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  margin: 0 0 16px;
+}
+.add-dialog .notice {
+  margin: 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 70px 20px;
+  color: var(--text-muted);
+}
+.empty-icon { font-size: 2.4rem; margin-bottom: 10px; }
+.empty-state p { max-width: 420px; margin: 0 auto 18px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 20px;
+}
+/* [hidden] is spelled out explicitly — otherwise the more specific
+   .grid{display:grid} rule in this same stylesheet overrides the browser's
+   built-in display:none. */
+.grid[hidden], .table-wrap[hidden] { display: none; }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+.card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.card-media { display: flex; flex-direction: column; color: inherit; text-decoration: none; }
+.card-media:hover { text-decoration: none; }
+
+.cover {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--cover-ph-1), var(--cover-ph-2));
+}
+.cover-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 10px;
+}
+
+.badge {
+  position: absolute;
+  top: 9px; left: 9px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(15, 16, 22, 0.72);
+  color: var(--text);
+  backdrop-filter: blur(2px);
+}
+/* "planned" is the only status with no color of its own, so it used to get
+   the bare .badge: opaque dark background + var(--text), which also turns
+   dark in the light theme — the text blended into the background. */
+.badge-planned { background: rgba(180, 186, 199, 0.92); color: #10121a; }
+.badge-watching { background: rgba(124, 156, 255, 0.92); color: #10121a; }
+.badge-watched { background: rgba(94, 207, 143, 0.92); color: #10121a; }
+.badge-dropped { background: rgba(240, 114, 138, 0.92); color: #10121a; }
+.badge-rating { left: auto; right: 9px; background: rgba(242, 201, 76, 0.92); color: #10121a; }
+
+.card-body { padding: 11px 13px 6px; display: flex; flex-direction: column; gap: 7px; }
+.card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.32;
+  min-height: calc(1.32em * 2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.chip-row { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px; }
+/* Reserves exactly two rows of chips so cards without wrapping don't "drift"
+   relative to cards that wrap. Chip count is already capped in the
+   template, so no overflow:hidden here — it would clip a chip's border. */
+.card-chip-row { min-height: 46px; }
+.chip {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+  height: fit-content;
+}
+
+.card-footer {
+  padding: 0 13px 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.76rem;
+}
+.card-date { flex-shrink: 0; white-space: nowrap; }
+.card-source {
+  color: var(--text-muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.card-source:hover { color: var(--link); text-decoration: underline; }
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.table-view { width: 100%; table-layout: fixed; border-collapse: collapse; background: var(--bg-card); }
+.table-view th {
+  text-align: left;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.table-view td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  font-size: 0.88rem;
+}
+/* table-layout:fixed doesn't shrink content on its own — truncate long text
+   with an ellipsis so title/genres/source don't stretch the table wider. */
+.table-truncate {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The title wraps onto a second line if it fits vertically, and is only
+   ellipsis-truncated if it still doesn't fit. min-height always reserves
+   room for two lines — otherwise rows with a one-line vs. two-line title end
+   up different heights and the table looks "ragged" (especially noticeable
+   when the title column is narrow and wrapping happens often). */
+.table-title-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.3;
+  min-height: calc(1.3em * 2);
+}
+.table-row { cursor: pointer; transition: background 0.12s ease; }
+.table-row:hover { background: var(--bg-elevated); }
+.table-row:last-child td { border-bottom: none; }
+.table-cover-col, .table-cover { width: 52px; padding-left: 10px; padding-right: 6px; }
+.table-title-col { width: 36%; }
+.table-genres-col { width: 19%; }
+.table-status-col { width: 120px; }
+.table-rating-col { width: 90px; }
+.table-source-col { width: 15%; }
+/* DD.MM.YYYY (10 chars) + a short "Дата"/"Added" header — shorter than every
+   other column, but still given a fixed width rather than %, so it doesn't
+   shrink along with the rest on narrow screens and start wrapping
+   "31.08.2026" onto two lines. */
+.table-created-col { width: 100px; }
+.table-cover-inner, .table-cover .cover-placeholder {
+  width: 36px; height: 52px;
+  border-radius: 4px;
+  display: block;
+}
+/* A wrapper instead of styling <img> directly — otherwise img{object-fit:cover}
+   here would win over the shared .cover-main-img{object-fit:contain} by
+   specificity (.table-cover img outweighs a single class). The images
+   inside are already fully described by the shared .cover-blur-bg/
+   .cover-main-img (see .entry-cover). */
+.table-cover-inner { position: relative; overflow: hidden; }
+/* A heavy blur is unnecessary on such a small preview (and more expensive to
+   render with a hundred rows on screen at once) — lighter than in the big views. */
+.table-cover-inner .cover-blur-bg { filter: blur(5px) brightness(0.7) saturate(1.1); }
+.table-cover .cover-placeholder {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+.badge-inline {
+  position: static;
+  display: inline-block;
+  backdrop-filter: none;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+.badge-inline.badge-planned { background: rgba(180, 186, 199, 0.18); color: var(--text-muted); border-color: transparent; }
+.badge-inline.badge-watching { background: rgba(124, 156, 255, 0.18); color: var(--link); border-color: transparent; }
+.badge-inline.badge-watched { background: rgba(94, 207, 143, 0.18); color: var(--success); border-color: transparent; }
+.badge-inline.badge-dropped { background: rgba(240, 114, 138, 0.18); color: var(--danger); border-color: transparent; }
+
+.entry-page {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 32px;
+}
+.entry-cover {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+/* A blurred, scaled-up copy of the same image filling the whole block —
+   under a cover with "wrong" (e.g. horizontal) proportions, this gives a
+   pleasant blurred background instead of empty bars or black boxes. */
+.cover-blur-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(20px) brightness(0.65) saturate(1.1);
+  transform: scale(1.15);
+}
+/* The image itself, shown in full without cropping (unlike the grid/table,
+   where posters are usually vertical anyway and frame-cropping barely shows). */
+.cover-main-img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.cover-remove-form { position: absolute; top: 8px; right: 8px; }
+/* A translucent gray circle instead of a colored background — the × stays
+   readable and never blends in, regardless of what's on the cover itself. */
+.cover-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(120, 120, 120, 0.5);
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.cover-remove-btn:hover { background: rgba(120, 120, 120, 0.75); filter: none; }
+/* Clicking the cover itself (viewing, not editing) opens it fullscreen — see
+   initCoverLightbox — instead of a separate eye button that just distracted
+   from the image. */
+.entry-cover.js-view-cover { cursor: pointer; }
+.entry-cover.js-view-cover .cover-main-img { transition: filter 0.15s ease; }
+.entry-cover.js-view-cover:hover .cover-main-img { filter: brightness(0.85); }
+.entry-cover .cover-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 16px;
+}
+
+.input-with-btn { display: flex; gap: 8px; }
+.input-with-btn input { flex: 1; min-width: 0; }
+.input-with-btn .btn-secondary { padding: 10px 14px; white-space: nowrap; }
+
+.cover-url-status {
+  display: inline-block;
+  font-size: 0.82rem;
+  margin-top: -8px;
+}
+.cover-url-status.ok { color: var(--success); }
+.cover-url-status.error { color: var(--danger); }
+
+.chip-removable { display: inline-flex; align-items: center; gap: 4px; padding-right: 4px; }
+.chip-remove {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+.chip-remove:hover { color: var(--danger); filter: none; }
+
+.chip-add {
+  background: var(--bg-elevated);
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  font-size: 0.72rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.chip-add:hover { border-color: var(--accent); color: var(--text); filter: none; }
+
+.genre-picker { position: relative; margin-bottom: 18px; }
+.genre-dropdown[hidden] { display: none; }
+.genre-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 5;
+  width: min(280px, 90vw);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-hover);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.genre-dropdown-input-row { display: flex; gap: 6px; }
+.genre-dropdown-input-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  font-size: 0.88rem;
+}
+.genre-dropdown-input-row button { padding: 6px 12px; }
+.genre-dropdown-list[hidden] { display: none; }
+.genre-dropdown-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 168px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+.genre-option {
+  background: none;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 400;
+  font-size: 0.88rem;
+}
+.genre-option:hover { background: var(--bg-elevated); filter: none; }
+
+.file-drop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  padding: 16px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.file-drop:hover, .file-drop.dragover { border-color: var(--accent); background: rgba(124, 156, 255, 0.06); }
+.file-drop-icon { font-size: 1.3rem; }
+.file-input-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.field-block { display: flex; flex-direction: column; gap: 6px; }
+.field-block-label { font-size: 0.85rem; color: var(--text-muted); }
+
+.google-img-link {
+  font-size: 0.8rem;
+  color: var(--link);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+}
+.google-img-link:hover { text-decoration: none; border-color: var(--border-hover); }
+
+.entry-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  min-width: 0;
+}
+.entry-header-row h1 { margin: 0; min-width: 0; }
+
+.entry-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+/* Separates "back to list" from the other actions (edit/save/delete) — it's
+   navigation, not an action on the entry itself. The round .icon-btn has a
+   fixed size, so the divider is a pseudo-element in the margin rather than
+   border/padding on the button itself (which would eat into its round shape). */
+.entry-header-actions .back-btn { position: relative; margin-right: 14px; }
+.entry-header-actions .back-btn::after {
+  content: '';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+}
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.icon-btn:hover { background: var(--bg-card); border-color: var(--border-hover); text-decoration: none; filter: none; }
+.icon-btn-danger:hover { border-color: var(--danger); background: rgba(240, 114, 138, 0.1); }
+
+.icon-btn-accent {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+  color: #10121a;
+}
+.icon-btn-accent:hover { filter: brightness(1.08); background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+
+.entry-details h1 { font-size: 1.5rem; letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.description { color: var(--text); opacity: 0.9; white-space: pre-line; margin: 0 0 22px; }
+.source { color: var(--text-muted); margin: 0 0 18px; font-size: 0.9rem; }
+.entry-dates { font-size: 0.8rem; margin: 0 0 18px; }
+.hint { color: var(--text-muted); font-size: 0.78rem; margin: -8px 0 0; }
+
+.cover-lightbox {
+  background: none;
+  border: none;
+  padding: 0;
+  max-width: 92vw;
+  max-height: 92vh;
+}
+.cover-lightbox::backdrop { background: rgba(8, 9, 13, 0.78); backdrop-filter: blur(2px); }
+.cover-lightbox img {
+  display: block;
+  max-width: 92vw;
+  max-height: 92vh;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-hover);
+}
+.quick-form { padding-top: 18px; border-top: 1px solid var(--border); }
+.actions { margin-top: 4px; display: flex; gap: 10px; }
+
+.settings-menu { position: relative; }
+.settings-dropdown[hidden] { display: none; }
+.settings-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: min(280px, 90vw);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-hover);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.settings-section { display: flex; flex-direction: column; gap: 6px; }
+.settings-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.settings-btn-row { display: flex; gap: 6px; margin: 0; }
+.settings-opt {
+  flex: 1;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+.settings-opt:hover { border-color: var(--border-hover); filter: none; }
+.settings-opt.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #10121a;
+  border-color: transparent;
+  font-weight: 600;
+}
+.settings-backup-row { display: flex; gap: 8px; }
+.settings-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1.1rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+.settings-icon-btn:hover { border-color: var(--border-hover); filter: none; text-decoration: none; }
+
+/* Custom tooltip instead of the native title attribute — that has no way to
+   set which side it opens on, and this settings block sits against the
+   right edge of the screen: a normal tooltip to the right of the icon would
+   run off the window. Opens to the left instead. */
+.icon-tooltip { position: relative; }
+.icon-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 8px);
+  transform: translateY(-50%);
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  box-shadow: var(--shadow-card);
+}
+.icon-tooltip:hover::after, .icon-tooltip:focus-visible::after { opacity: 1; }
+
+.list-switcher { position: relative; }
+/* Separated from the app name by a thin line — this is a context switcher
+   (which collection is currently open), not part of the brand itself. */
+.topbar-left .list-switcher { padding-left: 14px; border-left: 1px solid var(--border); }
+.list-switcher-dropdown[hidden] { display: none; }
+.list-switcher-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  width: min(280px, 90vw);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card-hover);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.list-switcher-input-row { display: flex; gap: 6px; margin: 0; }
+.list-switcher-input-row input { flex: 1; min-width: 0; padding: 8px 10px; font-size: 0.88rem; }
+.list-switcher-input-row button { padding: 6px 12px; }
+.list-switcher-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+.list-switcher-option-row { display: block; }
+.list-switcher-view { display: flex; align-items: center; gap: 2px; }
+.list-switcher-option-form { flex: 1; min-width: 0; }
+.list-switcher-option {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 400;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+.list-switcher-option:hover { background: var(--bg-elevated); filter: none; }
+.list-switcher-option.active { font-weight: 600; color: var(--link); }
+.list-switcher-count { color: var(--text-muted); font-size: 0.76rem; flex-shrink: 0; }
+.list-switcher-rename-btn, .list-switcher-delete { padding: 6px; flex-shrink: 0; }
+.list-switcher-hint { margin: 0; }
+.list-switcher-rename-form[hidden] { display: none; }
+.list-switcher-rename-form { display: flex; align-items: center; gap: 4px; padding: 2px 0; }
+.list-switcher-rename-input { flex: 1; min-width: 0; padding: 6px 8px; font-size: 0.85rem; }
+
+@media (max-width: 640px) {
+  .entry-page { grid-template-columns: 1fr; }
+  .entry-cover { max-width: 200px; }
+  .form .row { flex-direction: column; }
+  .container { padding: 20px 16px 48px; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+  .toolbar-actions { flex-wrap: wrap; justify-content: space-between; }
+  .search-box { order: -1; flex: 1 1 100%; }
+  .search-box input[type="search"] { width: 100%; }
+  .entry-header-row { flex-direction: column; }
+}

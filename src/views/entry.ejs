@@ -1,0 +1,198 @@
+<%- include('partials/header') %>
+
+<% const labels = { planned: t('status.planned'), watching: t('status.watching'), watched: t('status.watched'), dropped: t('status.dropped') }; %>
+<% const googleImgUrl = 'https://www.google.com/search?tbm=isch&q=' + encodeURIComponent(entry.title); %>
+<% const coverSrc = entry.cover_blob ? `/entries/${entry.id}/cover?v=${new Date(entry.updated_at).getTime()}` : entry.cover_url; %>
+
+<div class="entry-page">
+  <div
+    class="entry-cover<% if (coverSrc && !editMode) { %> js-view-cover<% } %>"
+    id="entry-cover-box"
+    <% if (coverSrc && !editMode) { %>data-cover-src="<%= coverSrc %>" title="<%= t('entry.viewCoverTitle') %>"<% } %>
+  >
+    <% if (coverSrc) { %>
+      <img src="<%= coverSrc %>" alt="" aria-hidden="true" class="cover-blur-bg" />
+      <img src="<%= coverSrc %>" alt="" class="js-cover-fallback cover-main-img" />
+      <% if (editMode) { %>
+        <form method="post" action="/entries/<%= entry.id %>" class="cover-remove-form">
+          <input type="hidden" name="remove_cover" value="1" />
+          <button
+            type="submit"
+            class="cover-remove-btn js-confirm"
+            title="<%= t('cover.removeTitle') %>"
+            data-confirm="<%= t('cover.removeConfirm') %>"
+          ><%- emoji('cross-mark') %></button>
+        </form>
+      <% } %>
+    <% } else if (!editMode) { %>
+      <div class="cover-placeholder">
+        <span><%= t('cover.none') %></span>
+        <a href="/entries/<%= entry.id %>/edit" class="google-img-link js-open-google" data-google-url="<%= googleImgUrl %>"><%= t('cover.findLink') %></a>
+      </div>
+    <% } else { %>
+      <div class="cover-placeholder">
+        <span><%= t('cover.none') %></span>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="entry-details">
+    <form method="post" action="/entries/<%= entry.id %>/delete" id="delete-form"></form>
+
+    <% if (!editMode) { %>
+      <div class="entry-header-row">
+        <h1><%= entry.title %></h1>
+        <div class="entry-header-actions">
+          <a href="/entries" class="icon-btn back-btn" title="<%= t('entry.backLink') %>"><%- emoji('back') %></a>
+          <a href="/entries/<%= entry.id %>/edit" class="icon-btn" title="<%= t('entry.editTitle') %>"><%- emoji('pencil') %></a>
+          <button type="submit" form="note-form" class="icon-btn" title="<%= t('entry.saveNoteTitle') %>"><%- emoji('save') %></button>
+          <button
+            type="submit"
+            form="delete-form"
+            class="icon-btn icon-btn-danger js-confirm"
+            title="<%= t('common.deleteTitle') %>"
+            data-confirm="<%= t('entry.deleteConfirm') %>"
+          ><%- emoji('trash') %></button>
+        </div>
+      </div>
+
+      <%- include('partials/genre-picker') %>
+
+      <p class="source">
+        <% if (entry.source_url) { %>
+          <%= t('entry.addedByLink') %>
+          <a href="<%= entry.source_url %>" target="_blank" rel="noopener noreferrer"><%= entry.source_domain %></a>
+        <% } else { %>
+          <%= t('entry.addedManually') %>
+        <% } %>
+      </p>
+
+      <% if (entry.description) { %><p class="description"><%= entry.description %></p><% } %>
+
+      <p class="muted entry-dates">
+        <%= t('entry.addedOn', { date: formatDate(entry.created_at) }) %>
+        · <%= t('entry.updatedOn', { date: formatDate(entry.updated_at) }) %>
+      </p>
+
+      <form method="post" action="/entries/<%= entry.id %>/status" class="form quick-form" id="note-form">
+        <div class="row">
+          <label><%= t('common.status') %>
+            <select name="status" class="js-auto-submit">
+              <% for (const s of statuses) { %>
+                <option value="<%= s %>" <%= entry.status === s ? 'selected' : '' %>><%= labels[s] %></option>
+              <% } %>
+            </select>
+          </label>
+
+          <label><%= t('common.ratingRange') %>
+            <select name="rating" class="js-auto-submit">
+              <option value="">—</option>
+              <% for (let i = 1; i <= 10; i++) { %>
+                <option value="<%= i %>" <%= entry.rating === i ? 'selected' : '' %>><%= i %></option>
+              <% } %>
+            </select>
+          </label>
+        </div>
+        <p class="hint"><%= t('entry.autoSaveHint') %></p>
+
+        <label><%= t('entry.myNote') %>
+          <textarea name="note" rows="4" placeholder="<%= t('entry.notePlaceholder') %>"><%= entry.note || '' %></textarea>
+        </label>
+      </form>
+    <% } else { %>
+      <div class="entry-header-row">
+        <h1><%= t('edit.title') %></h1>
+        <div class="entry-header-actions">
+          <a href="/entries" class="icon-btn back-btn" title="<%= t('entry.backLink') %>"><%- emoji('back') %></a>
+          <button type="submit" form="edit-form" class="icon-btn" title="<%= t('common.save') %>"><%- emoji('save') %></button>
+          <a href="/entries/<%= entry.id %>" class="icon-btn" title="<%= t('common.cancel') %>"><%- emoji('x-heavy') %></a>
+          <button
+            type="submit"
+            form="delete-form"
+            class="icon-btn icon-btn-danger js-confirm"
+            title="<%= t('common.deleteTitle') %>"
+            data-confirm="<%= t('entry.deleteConfirm') %>"
+          ><%- emoji('trash') %></button>
+        </div>
+      </div>
+
+      <% if (uploadError) { %><p class="error"><%= uploadError %></p><% } %>
+      <% if (refetchError) { %><p class="error"><%= refetchError %></p><% } %>
+
+      <form method="post" action="/entries/<%= entry.id %>" class="form" enctype="multipart/form-data" id="edit-form">
+        <label><%= t('common.title') %>
+          <input type="text" name="title" value="<%= entry.title %>" required />
+        </label>
+
+        <div class="field-block">
+          <span class="field-block-label"><%= t('common.genres') %></span>
+          <%- include('partials/genre-picker') %>
+        </div>
+
+        <label><%= t('common.description') %>
+          <textarea name="description" rows="5"><%= entry.description || '' %></textarea>
+        </label>
+
+        <label><%= t('edit.sourceUrlLabel') %> <span class="optional"><%= t('common.optional') %></span>
+          <div class="input-with-btn">
+            <input type="url" name="source_url" value="<%= entry.source_url || '' %>" placeholder="https://…" />
+            <button
+              type="submit"
+              formaction="/entries/<%= entry.id %>/refetch"
+              formnovalidate
+              class="btn-secondary"
+              title="<%= t('edit.refetchTitle') %>"
+            ><%- emoji('refresh') %> <%= t('common.query') %></button>
+          </div>
+        </label>
+
+        <label><%= t('cover.urlLabel') %>
+          <div class="input-with-btn">
+            <input type="url" name="cover_url" id="cover-url-input" value="<%= entry.cover_blob ? '' : (entry.cover_url || '') %>" placeholder="https://…" />
+            <button type="button" id="cover-url-check-btn" class="btn-secondary"><%- emoji('refresh') %> <%= t('common.query') %></button>
+          </div>
+          <span id="cover-url-status" class="cover-url-status"></span>
+        </label>
+        <p class="muted small"><%= t('cover.hint') %></p>
+        <a href="<%= googleImgUrl %>" target="_blank" rel="noopener noreferrer" class="google-img-link"><%= t('cover.findGoogleLink') %></a>
+
+        <label class="file-drop" for="cover-file-input" id="cover-file-drop">
+          <input type="file" name="cover_file" id="cover-file-input" accept="image/*" class="file-input-hidden" />
+          <span class="file-drop-icon"><%- emoji('folder') %></span>
+          <span class="file-drop-text" id="cover-file-label"><%= t('cover.fileDropText') %></span>
+        </label>
+        <span id="cover-file-status" class="cover-url-status"></span>
+        <p class="muted small"><%= t('cover.fileFormats', { max: maxCoverMb }) %></p>
+
+        <div class="row">
+          <label><%= t('common.status') %>
+            <select name="status">
+              <% for (const s of statuses) { %>
+                <option value="<%= s %>" <%= entry.status === s ? 'selected' : '' %>><%= labels[s] %></option>
+              <% } %>
+            </select>
+          </label>
+
+          <label><%= t('common.ratingRange') %>
+            <select name="rating">
+              <option value="">—</option>
+              <% for (let i = 1; i <= 10; i++) { %>
+                <option value="<%= i %>" <%= entry.rating === i ? 'selected' : '' %>><%= i %></option>
+              <% } %>
+            </select>
+          </label>
+        </div>
+
+        <label><%= t('entry.myNote') %>
+          <textarea name="note" rows="4"><%= entry.note || '' %></textarea>
+        </label>
+      </form>
+    <% } %>
+  </div>
+</div>
+
+<dialog id="cover-lightbox" class="cover-lightbox">
+  <img id="cover-lightbox-img" src="" alt="" />
+</dialog>
+
+<%- include('partials/footer') %>
