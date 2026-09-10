@@ -354,6 +354,8 @@ Applies to both the read-only view and edit mode.
 | TC-LST-21 | While renaming, change the name and click "✓" | The list is renamed, all its titles stay with it (nothing moves), the dropdown shows the new name |
 | TC-LST-22 | Rename the currently active list | The name on the switcher button (📁) updates immediately |
 | TC-LST-23 | Rename a list to a name already taken by another list | Shows the error "A list with this name already exists", both lists stay as they were |
+| TC-LST-23a | Rename a regular list to "Main" (exact match with the default list's localized name; "Основной" on RU) | Same "A list with this name already exists" error — the rename doesn't go through, the dropdown doesn't end up with two identically-labeled entries |
+| TC-LST-23b | Type "Main"/"Основной" into the new-list field and click "✓" | No new list is created — switches to the already-existing default "Main" instead |
 | TC-LST-24 | While renaming, click "✕" or Escape, or click outside the dropdown | Returns to the normal row view with no changes saved |
 | TC-LST-25 | Open the dropdown, find the "Main" entry | It has neither ✏️ nor 🗑️ next to it — under no circumstances, regardless of how many lists the account has |
 | TC-LST-26 | Send `POST /settings/list/delete` with the default list's `list_id` directly (bypassing the hidden UI button) | The request does nothing, the list and its titles stay in place |

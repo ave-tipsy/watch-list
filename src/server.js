@@ -189,7 +189,14 @@ app.post('/settings/list', (req, res) => {
     } else {
       const name = truncate(String(req.body.name || '').trim(), LIMITS.LIST_NAME);
       if (name) {
-        let list = db.prepare('SELECT id FROM lists WHERE user_id = ? AND name = ? AND is_default = 0').get(userId, name);
+        // The default list is stored with an empty name — its displayed name
+        // only ever comes from the localization below, never from the `name`
+        // column — so it wouldn't otherwise be found by the lookup below and
+        // a same-named regular list would get created right next to it.
+        let list =
+          name === res.locals.t('list.defaultName')
+            ? db.prepare('SELECT id FROM lists WHERE user_id = ? AND is_default = 1').get(userId)
+            : db.prepare('SELECT id FROM lists WHERE user_id = ? AND name = ? AND is_default = 0').get(userId, name);
         if (!list) {
           const count = db.prepare('SELECT COUNT(*) AS n FROM lists WHERE user_id = ?').get(userId).n;
           if (count >= LIMITS.LISTS_COUNT) {
@@ -223,6 +230,13 @@ app.post('/settings/list/rename', (req, res) => {
     // The default list can't be renamed — it has no name of its own, it
     // always comes from the localization.
     if (list && !list.is_default) {
+      // The default list's name column is empty (see above), so the UNIQUE
+      // constraint below never catches a collision with its *displayed*
+      // name — check that case explicitly first.
+      if (newName === res.locals.t('list.defaultName')) {
+        req.session.listFlash = { error: 'duplicate' };
+        return res.redirect('/entries');
+      }
       try {
         db.prepare('UPDATE lists SET name = ? WHERE id = ?').run(newName, id);
         logAction('list', 'rename', req, ` id=${id} from=${JSON.stringify(list.name)} to=${JSON.stringify(newName)}`);
