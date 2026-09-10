@@ -902,13 +902,14 @@ button.danger:hover { background: rgba(240, 114, 138, 0.1); filter: none; }
    (which collection is currently open), not part of the brand itself. */
 .topbar-left .list-switcher { padding-left: 14px; border-left: 1px solid var(--border); }
 
-/* A long list name would otherwise stretch the header and shift everything
-   after it (the search box, on narrow screens even the settings menu) every
-   time you switch to a list with a differently-sized name — capped and
-   ellipsized so the header's layout stays put regardless of the name. */
+/* A list name would otherwise resize the header and shift everything after
+   it (the search box, on narrow screens even the settings menu) every time
+   you switch to a list with a differently-sized name — fixed width (not
+   just capped) and ellipsized so the header's layout stays put regardless
+   of the name, short or long. */
 #list-switcher-label {
   display: inline-block;
-  max-width: 25ch;
+  width: 25ch;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
