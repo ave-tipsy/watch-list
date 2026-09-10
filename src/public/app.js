@@ -325,17 +325,22 @@ function initCoverFilePreview() {
 function initSort() {
   const titleBtn = document.getElementById('sort-title-btn');
   const dateBtn = document.getElementById('sort-date-btn');
+  const ratingBtn = document.getElementById('sort-rating-btn');
   const grid = document.getElementById('view-grid');
   const tbody = document.querySelector('#view-table tbody');
-  if (!titleBtn || !dateBtn || !grid) return;
+  if (!titleBtn || !dateBtn || !ratingBtn || !grid) return;
 
   const KEY = 'watchlist:sort';
-  const DEFAULT_DIR = { title: 'asc', added: 'desc' };
+  const DEFAULT_DIR = { title: 'asc', added: 'desc', rating: 'desc' };
 
   function compare(key, dir, a, b) {
     let result;
     if (key === 'title') {
       result = (a.dataset.title || '').localeCompare(b.dataset.title || '', 'ru');
+    } else if (key === 'rating') {
+      // No rating counts as 0 — always below any rated title (1-10) when
+      // sorting descending, per data-rating defaulting to "0" in the markup.
+      result = Number(a.dataset.rating || 0) - Number(b.dataset.rating || 0);
     } else {
       result = new Date(a.dataset.added) - new Date(b.dataset.added);
     }
@@ -353,8 +358,10 @@ function initSort() {
 
     titleBtn.classList.toggle('active', key === 'title');
     dateBtn.classList.toggle('active', key === 'added');
+    ratingBtn.classList.toggle('active', key === 'rating');
     titleBtn.title = key === 'title' ? tr(dir === 'asc' ? 'list.sortTitleAsc' : 'list.sortTitleDesc') : tr('list.sortByTitle');
     dateBtn.title = key === 'added' ? tr(dir === 'asc' ? 'list.sortDateAsc' : 'list.sortDateDesc') : tr('list.sortByDate');
+    ratingBtn.title = key === 'rating' ? tr(dir === 'asc' ? 'list.sortRatingAsc' : 'list.sortRatingDesc') : tr('list.sortByRating');
   }
 
   let state = { key: 'added', dir: 'desc' };
@@ -373,6 +380,7 @@ function initSort() {
   }
   titleBtn.addEventListener('click', () => onClick('title'));
   dateBtn.addEventListener('click', () => onClick('added'));
+  ratingBtn.addEventListener('click', () => onClick('rating'));
 }
 
 // List search: filters the already-rendered cards/table rows by the text
@@ -380,12 +388,13 @@ function initSort() {
 function initSearch() {
   const input = document.getElementById('search-input');
   const empty = document.getElementById('search-empty');
+  const clearBtn = document.getElementById('search-clear-btn');
   if (!input) return;
 
   const cards = [...document.querySelectorAll('#view-grid .card')];
   const rows = [...document.querySelectorAll('#view-table .table-row')];
 
-  input.addEventListener('input', () => {
+  function apply() {
     const q = input.value.trim().toLowerCase();
     let visible = 0;
     cards.forEach((c) => {
@@ -398,7 +407,18 @@ function initSearch() {
       r.style.display = match ? '' : 'none';
     });
     if (empty) empty.hidden = !q || visible > 0;
-  });
+    if (clearBtn) clearBtn.hidden = !q;
+  }
+
+  input.addEventListener('input', apply);
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      apply();
+      input.focus();
+    });
+  }
 }
 
 // Genre widget on the card: chips + dropdown (own input on top, then a

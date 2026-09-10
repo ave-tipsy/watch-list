@@ -1,6 +1,6 @@
 # Watch List
 
-> Pre-release `0.0.19` — core functionality works and is covered by the
+> Pre-release `0.0.20` — core functionality works and is covered by the
 > test cases below, but the project isn't considered stable yet.
 
 A self-hosted tracker for things you plan to watch, read, or come back to.
@@ -15,14 +15,14 @@ docker compose up -d --build
 ```
 
 Or the prebuilt image (swap `build: .` for `image:
-necroave/watch-list:0.0.19` in `docker-compose.yml`):
+necroave/watch-list:0.0.20` in `docker-compose.yml`):
 
 ```bash
 docker run -d --name watch-list -p 3000:3000 \
   -v watch-list-data:/data \
   -e SESSION_SECRET="$(openssl rand -hex 32)" \
   -e ALLOW_REGISTRATIONS=false \
-  necroave/watch-list:0.0.19
+  necroave/watch-list:0.0.20
 ```
 
 Open `http://localhost:3000`. Data (SQLite) lives in the `watch-list-data`
@@ -60,26 +60,35 @@ All optional — a garbage or non-numeric value falls back to the default.
 ## Features
 
 - **Add by link or by name** — one field, the app figures out which.
-- **Metadata fetch, no API keys**: native APIs for aniliberty.top,
-  myanimelist.net (via Jikan), shikimori.one/.io, and anilist.co; Open
-  Graph/meta-tag scraping for any other site (imdb.com, kinopoisk.ru, …),
-  with cleanup of typical title noise. Anti-bot/captcha pages are detected
-  and never saved as data — you're asked for a manual title instead.
+- **Metadata fetch, no API keys**: native APIs for myanimelist.net (via
+  Jikan), shikimori.one/.io, and anilist.co. For aniliberty.top, title/
+  description/cover come from the release page's own Open Graph tags (its
+  search API can't be queried by exact alias and used to mix up similar
+  seasons/spin-offs), with the API used only to fetch genres. Any other
+  site (imdb.com, kinopoisk.ru, …) falls back to Open Graph/meta-tag
+  scraping, with cleanup of typical title noise. Anti-bot/captcha pages are
+  detected and never saved as data — you're asked for a manual title instead.
 - **Duplicate detection** by exact source link and by fuzzy title match —
-  asks for confirmation rather than blocking the add outright.
+  asks for confirmation rather than blocking the add outright, showing the
+  resolved title being added alongside the existing similar one.
 - Status (Planned → Watching → Watched/Dropped), a 1–10 rating, and a note
   — saved instantly on change. **Genres** as an editable chip/dropdown with
   suggestions from the rest of the list.
 - **"🔄 Refetch"** re-pulls title/description/genres/cover from the source
   link at any time.
-- Grid or table view, full-text search, sort by title or date — remembered per browser.
+- Full-text search lives in the header next to the list switcher (with a
+  one-click clear button), so its position never shifts as tabs/buttons
+  change below it. Grid or table view, sort by title, date, or rating —
+  remembered per browser; unrated titles always sort as lowest.
 - **Covers are downloaded and stored locally**, so a card never depends on
   the source site staying up. Mismatched aspect ratios get a blurred
   background fill instead of a hard crop; click any cover to view it fullscreen.
 - Creation/update dates shown on every view (entry page, grid, table).
 - **Lists** (📁) — independent named sub-collections per account (up to
-  128), each with its own backup export/import, for organizing or sharing a
-  subset of titles. One un-deletable "Main" list always exists.
+  128, up to 50 characters each — ellipsized in the header if longer, full
+  name in a tooltip), each with its own backup export/import, for
+  organizing or sharing a subset of titles. One un-deletable "Main" list
+  always exists.
 - **Settings** (⚙️): light/dark/system theme, RU/EN interface language,
   gzipped-JSON backup that merges rather than replaces.
 

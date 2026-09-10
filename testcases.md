@@ -47,9 +47,10 @@ stated otherwise.
 | TC-ADD-10 | Add a link already in the list, then refresh the browser page | No "resubmit form?" warning — the page just reloads with the list instead, the add dialog doesn't reopen on a further refresh |
 | TC-ADD-11 | Add a title manually with a name matching (case/whitespace-insensitive) an existing one | Dialog reopens with a warning "Looks like a similar title already exists: <title> — status "…". Add anyway?", the "Add" button changes to "Add anyway" |
 | TC-ADD-12 | In the TC-ADD-11 state, click "Add anyway" | The entry is created despite the name match |
-| TC-ADD-13 | Add a title by link whose fetched title only slightly differs from an existing one (e.g. "Title" vs "Title Season 2") | Same similar-title warning as TC-ADD-11, with the same link kept in the field for resubmission |
+| TC-ADD-13 | Add a title by link whose fetched title only slightly differs from an existing one (e.g. "Title" vs "Title Season 2") | Same similar-title warning as TC-ADD-11, with the same link kept in the field for resubmission; above the warning, a separate line reads "Adding: <fetched title>" |
 | TC-ADD-14 | The title matches several already-added titles at once | The warning lists all matches (each linking to its own entry with its status), not just the first one found |
 | TC-ADD-15 | Open the add dialog, type a title that triggers the "Looks like it already exists…" warning, close the dialog (click outside/"Cancel"), reopen it and type a completely different title | The button says "Add" again, the warning doesn't appear without an actual reason — the old state doesn't stay "stuck" |
+| TC-ADD-16 | TC-ADD-11 state (similar title added **manually**, no link) | No "Adding: …" line above the warning — the input field itself already shows the typed name, no need to repeat it |
 
 ---
 
@@ -57,8 +58,10 @@ stated otherwise.
 
 | ID | Site / link | Expected result |
 |----|----------------|----------------------|
-| TC-PRV-01 | `aniliberty.top/anime/releases/release/<id>-slug` | Title/description/genres/cover from the AniLibria API |
-| TC-PRV-02 | `aniliberty.top/anime/releases/release/<slug>/episodes` (no numeric id) | The release is found by alias via AniLibria search, genres are fetched with a separate by-id request |
+| TC-PRV-01 | `aniliberty.top/anime/releases/release/<id>-slug` | Title/description/cover come from the release page's own OG tags; genres come from a separate AniLibria API request by that id |
+| TC-PRV-02 | `aniliberty.top/anime/releases/release/<slug>/episodes` (no numeric id) | Title/description/cover come from the same page's OG tags; the id for genres is resolved via AniLibria search by alias |
+| TC-PRV-02a | Links to different seasons/spin-offs with similar slugs (e.g. `.../erandeiraremasen`, `.../erandeiraremasen-2nd-season`, `.../erandeiraremasen-ryoushu-no-youjo`), none with a numeric id | Each link yields its own season's title/cover/description/genres — they don't collapse into the same (first) search result |
+| TC-PRV-02b | Link with no numeric id, while AniLibria's API is unreachable/erroring | Title/description/cover still come through (from the page's OG tags), genres are an empty string, no crash |
 | TC-PRV-03 | `myanimelist.net/anime/<id>/<slug>` | Data via Jikan (title_russian/english, synopsis, genres, cover) |
 | TC-PRV-04 | `myanimelist.net/store/manga/...` (not `/anime/`) or another unrecognized path | The provider doesn't match → falls back to generic og-tag scraping |
 | TC-PRV-05 | `shikimori.one/animes/<id>-slug`, `shikimori.io/animes/z<id>-slug`, `shikimori.me/animes/...` | All three domains are recognized, data comes from the Shikimori API |
@@ -222,8 +225,13 @@ Applies to both the read-only view and edit mode.
 | TC-SRCH-04 | Search by source domain | Finds titles with that source |
 | TC-SRCH-05 | Search by a word from a personal note | Finds the title |
 | TC-SRCH-06 | Enter a query that matches nothing | "Nothing found" is shown |
-| TC-SRCH-07 | Clear the search field | The list returns to its full view |
+| TC-SRCH-07 | Clear the search field manually (delete the text) | The list returns to its full view |
 | TC-SRCH-08 | The list is empty (0 titles) | The search field is disabled |
+| TC-SRCH-09 | The search field is empty | No clear button is shown inside the field |
+| TC-SRCH-10 | Type any text into search | A clear (×) button appears inside the field |
+| TC-SRCH-11 | Click the clear button while the field is non-empty and the list is filtered | The field clears instantly, the list returns to its full view, focus stays in the field, the clear button hides again |
+| TC-SRCH-12 | Search lives in the header next to the list switcher (not in the status-tabs/sort toolbar) | Switching status tabs, or a different number of sort/view buttons, doesn't shift the search field or push it onto another line |
+| TC-SRCH-13 | Switch between lists with very different name lengths (short ↔ long, ellipsized) | The search field stays in the same place at the same width — the header doesn't "jump" |
 
 ---
 
@@ -237,6 +245,11 @@ Applies to both the read-only view and edit mode.
 | TC-SORT-04 | Click 🔠 again | The direction flips to Z→A |
 | TC-SORT-05 | Change the sort, reload the page | The choice is preserved (localStorage) |
 | TC-SORT-06 | Change the sort, toggle grid/table | The order stays consistent in both views |
+| TC-SORT-07 | Click ★ | The list re-sorts by rating, descending by default (highest first) |
+| TC-SORT-08 | Click ★ again | Direction flips to ascending (lowest/unrated first) |
+| TC-SORT-09 | ★ descending, some titles have no rating | Unrated titles sort strictly below any rated one (1–10), as a group at the very bottom |
+| TC-SORT-10 | ★ ascending, some titles have no rating | Unrated titles sort strictly above any rated one, at the very top |
+| TC-SORT-11 | Sort by ★, reload the page / toggle grid-table | Choice and direction persist (localStorage), order stays consistent in both views — same as TC-SORT-05/06 |
 
 ---
 
@@ -348,6 +361,9 @@ Applies to both the read-only view and edit mode.
 | TC-LST-28 | Delete every regular list, leaving only "Main" | Deletes with no issue, "Main" remains the only one and still has no ✏️/🗑️ buttons |
 | TC-LST-29 | Switch the UI language (RU/EN) | The "Main" entry's label in the dropdown and on the switcher button (📁) changes with the language; regular (non-default) list names do not — they aren't interface text |
 | TC-LST-30 | Create 127 regular lists (128 total together with the mandatory "Main" — the overall cap), try to create one more | Not created, shows an over-the-limit error; the existing lists are unaffected |
+| TC-LST-31 | Enter a name longer than 50 characters (create or rename), bypassing the client-side `maxlength` (e.g. a direct `POST`) | The server truncates the name to 50 characters, the full text isn't stored |
+| TC-LST-32 | Switch to a list with a long name (near/at the 50-character limit) | The header switcher button ellipsizes the name without stretching the header; the full name shows in a tooltip on hover |
+| TC-LST-33 | Switch between lists with very different name lengths (short ↔ ellipsized) | The list-name block's width in the header doesn't jump around, the search field next to it stays put (see also TC-SRCH-13) |
 
 ---
 

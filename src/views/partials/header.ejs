@@ -16,7 +16,7 @@
       <a class="brand" href="/entries"><span class="brand-mark"><%- emoji('tv') %></span>Watch List</a>
       <div class="list-switcher" id="list-switcher">
         <button type="button" id="list-switcher-btn" class="btn-secondary" title="<%= t('list.switcherTitle') %>">
-          <%- emoji('folder') %> <span id="list-switcher-label"><%= activeList %></span>
+          <%- emoji('folder') %> <span id="list-switcher-label" title="<%= activeList %>"><%= activeList %></span>
         </button>
         <div class="list-switcher-dropdown" id="list-switcher-dropdown" hidden>
           <form method="post" action="/settings/list" class="list-switcher-input-row">
@@ -80,6 +80,15 @@
           <p class="hint list-switcher-hint"><%= t('list.about') %></p>
         </div>
       </div>
+      <% if (typeof entries !== 'undefined') { %>
+        <div class="topbar-search">
+          <label class="search-box">
+            <span class="search-icon"><%- emoji('magnify-right') %></span>
+            <input type="search" id="search-input" placeholder="<%= t('list.searchPlaceholder') %>" <% if (entries.length === 0) { %>disabled<% } %> />
+            <button type="button" id="search-clear-btn" class="search-clear" aria-label="<%= t('search.clear') %>" hidden>×</button>
+          </label>
+        </div>
+      <% } %>
     </div>
     <nav class="topnav">
       <% if (currentUser) { %>

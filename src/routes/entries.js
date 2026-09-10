@@ -280,7 +280,7 @@ router.post('/', async (req, res) => {
   if (!confirmDuplicate) {
     const titleDuplicates = findTitleDuplicates(req.session.userId, listId, meta.title);
     if (titleDuplicates.length) {
-      flashAddModal(req, { open: true, query, titleDuplicates });
+      flashAddModal(req, { open: true, query, titleDuplicates, resolvedTitle: meta.title });
       return res.redirect('/entries');
     }
   }

@@ -29,13 +29,10 @@
   </nav>
 
   <div class="toolbar-actions">
-    <label class="search-box">
-      <span class="search-icon"><%- emoji('magnify-right') %></span>
-      <input type="search" id="search-input" placeholder="<%= t('list.searchPlaceholder') %>" <% if (entries.length === 0) { %>disabled<% } %> />
-    </label>
     <div class="view-toggle" role="group" aria-label="<%= t('list.sortAria') %>">
       <button type="button" id="sort-date-btn" class="view-btn" title="<%= t('list.sortByDate') %>"><%- emoji('calendar') %></button>
       <button type="button" id="sort-title-btn" class="view-btn" title="<%= t('list.sortByTitle') %>"><%- emoji('input-latin-upper') %></button>
+      <button type="button" id="sort-rating-btn" class="view-btn" title="<%= t('list.sortByRating') %>">★</button>
     </div>
     <div class="view-toggle" role="group" aria-label="<%= t('list.viewAria') %>">
       <button type="button" id="view-grid-btn" class="view-btn" title="<%= t('list.viewGrid') %>">▦</button>
@@ -59,6 +56,9 @@
     <% } %>
 
     <% if (addModal.titleDuplicates && addModal.titleDuplicates.length) { %>
+      <% if (addModal.resolvedTitle) { %>
+        <p class="notice"><%= t('add.addingTitle') %> <strong><%= addModal.resolvedTitle %></strong></p>
+      <% } %>
       <p class="notice">
         <%= addModal.titleDuplicates.length > 1 ? t('add.similarPlural') : t('add.similarSingular') %>
         <% addModal.titleDuplicates.forEach((d, i) => { %><% if (i > 0) { %>, <% } %><a href="/entries/<%= d.id %>"><%= d.title %></a>
@@ -99,7 +99,7 @@
 
   <div class="grid" id="view-grid">
     <% for (const e of entries) { %>
-      <div class="card" data-search="<%= searchIndex(e) %>" data-title="<%= e.title.toLowerCase() %>" data-added="<%= e.created_at %>">
+      <div class="card" data-search="<%= searchIndex(e) %>" data-title="<%= e.title.toLowerCase() %>" data-added="<%= e.created_at %>" data-rating="<%= e.rating || 0 %>">
         <a class="card-media" href="/entries/<%= e.id %>">
           <div class="cover">
             <% if (e.cover_blob || e.cover_url) { %>
@@ -150,7 +150,7 @@
       </thead>
       <tbody>
         <% for (const e of entries) { %>
-          <tr class="table-row" data-href="/entries/<%= e.id %>" data-search="<%= searchIndex(e) %>" data-title="<%= e.title.toLowerCase() %>" data-added="<%= e.created_at %>">
+          <tr class="table-row" data-href="/entries/<%= e.id %>" data-search="<%= searchIndex(e) %>" data-title="<%= e.title.toLowerCase() %>" data-added="<%= e.created_at %>" data-rating="<%= e.rating || 0 %>">
             <td class="table-cover">
               <% if (e.cover_blob || e.cover_url) { %>
                 <div class="table-cover-inner">

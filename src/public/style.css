@@ -278,7 +278,22 @@ button.danger:hover { background: rgba(240, 114, 138, 0.1); filter: none; }
   color: var(--text);
 }
 .search-box input[type="search"]:focus { outline: none; box-shadow: none; }
-.search-box input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
+/* The custom .search-clear button below replaces the native cancel button —
+   Firefox never renders one, so relying on it alone left the field with no
+   way to clear on that browser. */
+.search-box input[type="search"]::-webkit-search-cancel-button { display: none; }
+.search-clear {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.search-clear[hidden] { display: none; }
+.search-clear:hover { color: var(--text); filter: none; }
 
 .tabs {
   display: flex;
@@ -886,6 +901,23 @@ button.danger:hover { background: rgba(240, 114, 138, 0.1); filter: none; }
 /* Separated from the app name by a thin line — this is a context switcher
    (which collection is currently open), not part of the brand itself. */
 .topbar-left .list-switcher { padding-left: 14px; border-left: 1px solid var(--border); }
+
+/* A long list name would otherwise stretch the header and shift everything
+   after it (the search box, on narrow screens even the settings menu) every
+   time you switch to a list with a differently-sized name — capped and
+   ellipsized so the header's layout stays put regardless of the name. */
+#list-switcher-label {
+  display: inline-block;
+  max-width: 25ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Same separator treatment as the list switcher above — a distinct action on
+   the current list, not part of the brand/switcher group. */
+.topbar-search { display: flex; align-items: center; padding-left: 14px; border-left: 1px solid var(--border); min-width: 0; }
 .list-switcher-dropdown[hidden] { display: none; }
 .list-switcher-dropdown {
   position: absolute;
@@ -948,7 +980,10 @@ button.danger:hover { background: rgba(240, 114, 138, 0.1); filter: none; }
   .container { padding: 20px 16px 48px; }
   .toolbar { flex-direction: column; align-items: stretch; }
   .toolbar-actions { flex-wrap: wrap; justify-content: space-between; }
-  .search-box { order: -1; flex: 1 1 100%; }
+  .topbar { row-gap: 10px; }
+  .topbar-left { flex-wrap: wrap; row-gap: 10px; }
+  .topbar-search { padding-left: 0; border-left: none; flex: 1 1 100%; }
+  .topbar-search .search-box { width: 100%; }
   .search-box input[type="search"] { width: 100%; }
   .entry-header-row { flex-direction: column; }
 }
