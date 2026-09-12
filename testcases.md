@@ -198,6 +198,7 @@ Applies to both the read-only view and edit mode.
 |----|------|----------------------|
 | TC-LIST-01 | Toggle grid ↔ table | The view switches instantly with no reload, saved to localStorage and restored on the next visit |
 | TC-LIST-02 | Grid: a title with 0 genres next to one with 5+ genres | Cards have the same height (space reserved for title and genres) |
+| TC-LIST-02a | Grid: a title with 4 genres including one long word (e.g. a 19-character genre name) next to titles with short genres | The long genre is ellipsized but doesn't push chips onto a 3rd row — every card in the row has its date/source line at the same height, none has leftover empty space at the bottom |
 | TC-LIST-03 | Grid: a title with 4+ genres | The first 3 chips are shown plus a "…" chip |
 | TC-LIST-04 | Grid: a title with a rating | The rating badge sits top-right on the cover, on the same line as the status badge (which is top-left) |
 | TC-LIST-05 | Grid: click the source domain at the bottom of the card | Opens the source link in a new tab, **without** navigating to the title's page |

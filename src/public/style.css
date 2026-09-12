@@ -432,6 +432,19 @@ button.danger:hover { background: rgba(240, 114, 138, 0.1); filter: none; }
    relative to cards that wrap. Chip count is already capped in the
    template, so no overflow:hidden here — it would clip a chip's border. */
 .card-chip-row { min-height: 46px; }
+/* A single long genre name (e.g. "Сверхъестественное") had no width limit,
+   so it alone could push a card's chips onto a 3rd row — the two-row budget
+   above only accounted for chip *count*, not per-chip width. Since the grid
+   stretches every card in a row to match the tallest one, that 3rd row on
+   just one card pushed only that card's date/source line down, while its
+   row-mates kept theirs higher up with slack space below — the layout
+   "jump" this is fixing. Ellipsis keeps any one chip from blowing the budget. */
+.card-chip-row .chip {
+  display: inline-block;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .chip {
   font-size: 0.68rem;
   color: var(--text-muted);
