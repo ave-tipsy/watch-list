@@ -115,6 +115,18 @@ All optional — a garbage or non-numeric value falls back to the default.
 
 - Sessions are in-memory (multi-user mode) — a container restart logs everyone out.
 - The old **anilibria.tv** domain is dead; use **aniliberty.top**.
+- **Some AniLibria releases are unreachable from inside a Docker
+  container**, even though the same request works fine outside one. This
+  isn't a bug in this app: Docker containers have no IPv6 by default
+  (IPv4 only), and aniliberty.top's IPv4 and IPv6 edges on Cloudflare lead
+  to different backends — IPv4 sometimes redirects to a www mirror
+  (fronted by a different provider, DDoS-Guard) that's simply missing
+  some releases, while IPv6 goes straight to the full origin. Confirmed
+  experimentally: the exact same request from the exact same IP gives a
+  different result depending on whether it goes out over IPv4 or IPv6 —
+  a mismatch on Cloudflare/AniLibria's side, not something a host/retry
+  fallback in this app can fix. The (unreliable, ISP-dependent) workaround
+  is giving the Docker daemon real IPv6 connectivity.
 - Kinopoisk and sometimes IMDb block automated requests, falling back to manual entry.
 - A site with no dedicated provider and no usable og tags needs a manual title.
 - Requires JavaScript (add dialog, view/sort toggles, search).
