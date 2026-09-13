@@ -1,6 +1,6 @@
 # Watch List
 
-> Pre-release `0.0.22` — core functionality works and is covered by the
+> Pre-release `0.0.23` — core functionality works and is covered by the
 > test cases below, but the project isn't considered stable yet.
 
 A self-hosted tracker for things you plan to watch, read, or come back to.
@@ -15,14 +15,14 @@ docker compose up -d --build
 ```
 
 Or the prebuilt image (swap `build: .` for `image:
-necroave/watch-list:0.0.22` in `docker-compose.yml`):
+necroave/watch-list:0.0.23` in `docker-compose.yml`):
 
 ```bash
 docker run -d --name watch-list -p 3000:3000 \
   -v watch-list-data:/data \
   -e SESSION_SECRET="$(openssl rand -hex 32)" \
   -e ALLOW_REGISTRATIONS=false \
-  necroave/watch-list:0.0.22
+  necroave/watch-list:0.0.23
 ```
 
 Open `http://localhost:3000`. Data (SQLite) lives in the `watch-list-data`
@@ -79,8 +79,9 @@ All optional — a garbage or non-numeric value falls back to the default.
 - A dropped connection or timeout to the source site retries once after a
   short pause before giving up — some sites (AniLibria's anti-DDoS
   protection, for one) hiccup occasionally. If fetching still fails, the
-  real cause (network error, SSRF block, etc.) is logged to the container's
-  stdout instead of being swallowed silently.
+  real cause (network error, SSRF block, the source site's actual HTTP
+  status, anti-bot detection) is logged to the container's stdout instead
+  of being swallowed silently.
 - Full-text search lives in the header next to the list switcher (with a
   one-click clear button), so its position never shifts as tabs/buttons
   change below it. Grid or table view, sort by title, date, or rating —

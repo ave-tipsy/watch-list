@@ -58,7 +58,15 @@ async function fetchGeneric(url) {
       'Accept-Language': 'ru,en;q=0.9',
     },
   });
-  if (!res.ok) return null;
+  if (!res.ok) {
+    // Not an exception (the request completed), so it never hit the error
+    // logging in providers/index.js — but a non-2xx here is exactly the
+    // kind of "why did this fail" detail that was previously invisible.
+    console.log(
+      `[${new Date().toISOString()}] [providers] og-scrape non-ok response url=${JSON.stringify(url)} status=${res.status} finalUrl=${JSON.stringify(res.url || url)}`
+    );
+    return null;
+  }
 
   const buffer = Buffer.from(await res.arrayBuffer());
   const html = decodeBody(buffer, res.headers.get('content-type'));
@@ -77,7 +85,13 @@ async function fetchGeneric(url) {
     }
   }
 
-  return { title, description, coverUrl, blocked: looksBlocked(res.url || url, title) };
+  const blocked = looksBlocked(res.url || url, title);
+  if (blocked) {
+    console.log(
+      `[${new Date().toISOString()}] [providers] og-scrape looks blocked url=${JSON.stringify(url)} finalUrl=${JSON.stringify(res.url || url)} title=${JSON.stringify(title)}`
+    );
+  }
+  return { title, description, coverUrl, blocked };
 }
 
 module.exports = { fetchGeneric };
