@@ -46,12 +46,31 @@ async function resolveId(url) {
   return (exact || list[0]).id;
 }
 
+function usable(page) {
+  return Boolean(page && !page.blocked && page.title);
+}
+
+// The www subdomain has been seen 404ing on a release page that resolved
+// fine on the bare domain at the same time (not a general www outage —
+// other releases loaded fine on www) — try the link as given first, and
+// only fall back to the other host if that didn't work.
+async function fetchPage(url) {
+  const page = await fetchGeneric(url);
+  if (usable(page)) return page;
+
+  const u = new URL(url);
+  const hasWww = /^www\./i.test(u.hostname);
+  u.hostname = hasWww ? u.hostname.replace(/^www\./i, '') : `www.${u.hostname}`;
+  const fallbackPage = await fetchGeneric(u.toString()).catch(() => null);
+  return usable(fallbackPage) ? fallbackPage : page;
+}
+
 async function fetchByUrl(url) {
   // The id resolution (and genres below) go through AniLibria's API — if
   // that's unreachable, we still want the OG-based title/description/cover
   // to come through, just without genres.
-  const [page, id] = await Promise.all([fetchGeneric(url), resolveId(url).catch(() => null)]);
-  if (!page || page.blocked || !page.title) return null;
+  const [page, id] = await Promise.all([fetchPage(url), resolveId(url).catch(() => null)]);
+  if (!usable(page)) return null;
 
   const genres = id ? await fetchGenres(id).catch(() => '') : '';
   return {

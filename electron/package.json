@@ -1,6 +1,6 @@
 {
   "name": "watch-list-desktop",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "Windows wrapper around single-user watch-list (Electron)",
   "private": true,
   "main": "main.js",

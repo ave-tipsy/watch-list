@@ -6,6 +6,7 @@ const https = require('https');
 const express = require('express');
 const session = require('express-session');
 
+const { version: APP_VERSION } = require('../package.json');
 const { db, ALLOW_REGISTRATIONS, LOCAL_USER_ID, DB_PATH } = require('./db'); // initializes the DB schema on startup
 const { translate, formatDate, DICTS } = require('./i18n');
 const { LIMITS, truncate } = require('./limits');
@@ -100,6 +101,7 @@ app.use((req, res, next) => {
   // across Windows/Linux/Mac — this keeps them consistent on any OS/browser.
   res.locals.emoji = (name) => `<img class="emoji" src="/emoji/${name}.svg" alt="" />`;
   res.locals.i18nDict = DICTS[locale];
+  res.locals.appVersion = APP_VERSION;
   next();
 });
 

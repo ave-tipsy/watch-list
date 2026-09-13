@@ -13,7 +13,13 @@
 <body>
   <header class="topbar">
     <div class="topbar-left">
-      <a class="brand" href="/entries"><span class="brand-mark"><%- emoji('tv') %></span>Watch List</a>
+      <a class="brand" href="/entries">
+        <span class="brand-mark"><%- emoji('tv') %></span>
+        <span class="brand-text">
+          Watch List
+          <span class="brand-version">v<%= appVersion %></span>
+        </span>
+      </a>
       <div class="list-switcher" id="list-switcher">
         <button type="button" id="list-switcher-btn" class="btn-secondary" title="<%= t('list.switcherTitle') %>">
           <%- emoji('folder') %> <span id="list-switcher-label" title="<%= activeList %>"><%= activeList %></span>

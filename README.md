@@ -1,6 +1,6 @@
 # Watch List
 
-> Pre-release `0.0.20` — core functionality works and is covered by the
+> Pre-release `0.0.21` — core functionality works and is covered by the
 > test cases below, but the project isn't considered stable yet.
 
 A self-hosted tracker for things you plan to watch, read, or come back to.
@@ -15,14 +15,14 @@ docker compose up -d --build
 ```
 
 Or the prebuilt image (swap `build: .` for `image:
-necroave/watch-list:0.0.20` in `docker-compose.yml`):
+necroave/watch-list:0.0.21` in `docker-compose.yml`):
 
 ```bash
 docker run -d --name watch-list -p 3000:3000 \
   -v watch-list-data:/data \
   -e SESSION_SECRET="$(openssl rand -hex 32)" \
   -e ALLOW_REGISTRATIONS=false \
-  necroave/watch-list:0.0.20
+  necroave/watch-list:0.0.21
 ```
 
 Open `http://localhost:3000`. Data (SQLite) lives in the `watch-list-data`
@@ -76,6 +76,9 @@ All optional — a garbage or non-numeric value falls back to the default.
   suggestions from the rest of the list.
 - **"🔄 Refetch"** re-pulls title/description/genres/cover from the source
   link at any time.
+- A dropped connection or timeout to the source site retries once after a
+  short pause before giving up — some sites (AniLibria's anti-DDoS
+  protection, for one) hiccup occasionally.
 - Full-text search lives in the header next to the list switcher (with a
   one-click clear button), so its position never shifts as tabs/buttons
   change below it. Grid or table view, sort by title, date, or rating —
@@ -91,6 +94,8 @@ All optional — a garbage or non-numeric value falls back to the default.
   always exists.
 - **Settings** (⚙️): light/dark/system theme, RU/EN interface language,
   gzipped-JSON backup that merges rather than replaces.
+- The running version is shown in small text under "Watch List" in the
+  header.
 
 ## Security
 

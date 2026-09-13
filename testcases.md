@@ -62,6 +62,7 @@ stated otherwise.
 | TC-PRV-02 | `aniliberty.top/anime/releases/release/<slug>/episodes` (no numeric id) | Title/description/cover come from the same page's OG tags; the id for genres is resolved via AniLibria search by alias |
 | TC-PRV-02a | Links to different seasons/spin-offs with similar slugs (e.g. `.../erandeiraremasen`, `.../erandeiraremasen-2nd-season`, `.../erandeiraremasen-ryoushu-no-youjo`), none with a numeric id | Each link yields its own season's title/cover/description/genres — they don't collapse into the same (first) search result |
 | TC-PRV-02b | Link with no numeric id, while AniLibria's API is unreachable/erroring | Title/description/cover still come through (from the page's OG tags), genres are an empty string, no crash |
+| TC-PRV-02c | An AniLibria link with `www.` where that exact page 404s/fails on `www` but works without it | Data still comes through — automatic fallback to the other host variant (and vice versa: without `www` → with `www`, if needed) |
 | TC-PRV-03 | `myanimelist.net/anime/<id>/<slug>` | Data via Jikan (title_russian/english, synopsis, genres, cover) |
 | TC-PRV-04 | `myanimelist.net/store/manga/...` (not `/anime/`) or another unrecognized path | The provider doesn't match → falls back to generic og-tag scraping |
 | TC-PRV-05 | `shikimori.one/animes/<id>-slug`, `shikimori.io/animes/z<id>-slug`, `shikimori.me/animes/...` | All three domains are recognized, data comes from the Shikimori API |
@@ -100,6 +101,9 @@ stated otherwise.
 | TC-FAIL-04 | Confirm that no failed add attempt **ever** creates an entry with the URL as its title | No entry in the database has `title` equal to a URL |
 | TC-FAIL-05 | In the TC-FAIL-01 state (the "Title" field after a failed fetch for link A), enter another link B instead of a title | A new auto-fetch attempt is triggered for link B (instead of creating an entry with link B's text as the title) — on success, the entry is created with data fetched for B; on failure, the dialog reopens again in "Title" mode, but now with link B (not A) in the hidden field |
 | TC-FAIL-06 | Repeat TC-FAIL-05 several times in a row (link B also fails, enter link C, and so on), then finally enter a plain title | The retry cycle continues for each new link; once a title (not a link) is finally entered, the entry is created with that title and `source_url` equal to the LAST link entered (not the first) |
+| TC-FAIL-07 | The request to the source site fails with a network error (dropped connection/timeout) on the first attempt but succeeds on the second (simulated) | Exactly one retry after a pause — data comes through successfully, the user never sees an error |
+| TC-FAIL-08 | The request to the source site fails with a network error on both attempts in a row | Same as TC-FAIL-01 — exactly 2 attempts total (not an infinite retry), then the usual failure message |
+| TC-FAIL-09 | The source site responds with a plain HTTP error status (404, 403) with no network-level failure | No retry happens — a definite server response isn't retried, it's treated as a failure immediately, same as before |
 
 ---
 
@@ -278,6 +282,7 @@ Applies to both the read-only view and edit mode.
 | TC-GEN2-02 | Add the same title twice from different sources (e.g. AniLibria and AniList) | Both entries are created as separate ones (dedup only matches an exact `source_url`) |
 | TC-GEN2-03 | Title/description containing quotes, ampersands, HTML-like characters (`<`, `>`) | Escaped correctly on output, doesn't break the page layout |
 | TC-GEN2-04 | A very long list (50+ titles) | The grid/table/search/sort stay responsive |
+| TC-GEN2-05 | Open any page of the app | The current version (`v` + the value from `package.json`) is shown in small text under "Watch List" in the header, consistently on every page |
 
 ---
 
