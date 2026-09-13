@@ -1,6 +1,6 @@
 {
   "name": "watch-list",
-  "version": "0.0.21",
+  "version": "0.0.22",
   "description": "Self-hosted anime/show tracker with add-by-link metadata fetching",
   "private": true,
   "main": "src/server.js",

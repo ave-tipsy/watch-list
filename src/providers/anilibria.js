@@ -55,14 +55,31 @@ function usable(page) {
 // other releases loaded fine on www) — try the link as given first, and
 // only fall back to the other host if that didn't work.
 async function fetchPage(url) {
-  const page = await fetchGeneric(url);
-  if (usable(page)) return page;
+  let page = null;
+  let lastError = null;
+  try {
+    page = await fetchGeneric(url);
+    if (usable(page)) return page;
+  } catch (e) {
+    lastError = e; // keep trying the other host below before giving up
+  }
 
   const u = new URL(url);
   const hasWww = /^www\./i.test(u.hostname);
   u.hostname = hasWww ? u.hostname.replace(/^www\./i, '') : `www.${u.hostname}`;
-  const fallbackPage = await fetchGeneric(u.toString()).catch(() => null);
-  return usable(fallbackPage) ? fallbackPage : page;
+  try {
+    const fallbackPage = await fetchGeneric(u.toString());
+    if (usable(fallbackPage)) return fallbackPage;
+  } catch (e) {
+    lastError = e;
+  }
+
+  // Both attempts either threw or came back unusable. If either one threw a
+  // real error (network/SSRF failure, not just "no data"), surface that to
+  // the caller instead of silently returning nothing — that's the detail
+  // that actually explains a failure in the logs.
+  if (lastError) throw lastError;
+  return page;
 }
 
 async function fetchByUrl(url) {

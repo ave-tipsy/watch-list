@@ -58,6 +58,15 @@ function isUsable(meta) {
   return Boolean(meta && !meta.blocked && meta.title && (meta.description || meta.coverUrl));
 }
 
+// Every failure path below used to swallow its error silently, so a real
+// network/SSRF/DNS problem and a plain "nothing there" looked identical from
+// the outside — `docker logs` had nothing to go on. This logs just the
+// exception cases (an actual throw, not a normal "no data" result), with
+// enough detail to tell them apart without being noisy on ordinary misses.
+function logFetchError(stage, url, err) {
+  console.error(`[${new Date().toISOString()}] [providers] ${stage} error url=${JSON.stringify(url)} message=${JSON.stringify(err && err.message)}`);
+}
+
 function toResult(primary, hostname) {
   return {
     ok: true,
@@ -86,7 +95,8 @@ async function fetchMetadata(url) {
   if (provider) {
     try {
       specific = await provider.fetchByUrl(url);
-    } catch {
+    } catch (e) {
+      logFetchError(`${hostname} provider`, url, e);
       specific = null;
     }
   }
@@ -113,11 +123,22 @@ async function fetchMetadata(url) {
   let generic = null;
   try {
     generic = await fetchGeneric(url);
-  } catch {
+  } catch (e) {
+    logFetchError('generic og-scrape', url, e);
     generic = null;
   }
 
-  if (!isUsable(generic)) return { ok: false, sourceDomain: hostname };
+  if (!isUsable(generic)) {
+    // Not necessarily an error — could just be a page with no usable og
+    // tags — but logging what actually came back (or didn't) is exactly
+    // what's missing when the user only sees "couldn't fetch data".
+    console.log(
+      `[${new Date().toISOString()}] [providers] no usable metadata url=${JSON.stringify(url)} ` +
+        `specific=${specific ? JSON.stringify({ title: specific.title, blocked: specific.blocked }) : 'null'} ` +
+        `generic=${generic ? JSON.stringify({ title: generic.title, blocked: generic.blocked }) : 'null'}`
+    );
+    return { ok: false, sourceDomain: hostname };
+  }
   return toResult(generic, hostname);
 }
 
