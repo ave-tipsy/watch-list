@@ -126,7 +126,11 @@ All optional — a garbage or non-numeric value falls back to the default.
   different result depending on whether it goes out over IPv4 or IPv6 —
   a mismatch on Cloudflare/AniLibria's side, not something a host/retry
   fallback in this app can fix. The (unreliable, ISP-dependent) workaround
-  is giving the Docker daemon real IPv6 connectivity.
+  is giving the Docker daemon real IPv6 connectivity; for Synology this is
+  already done via `network_mode: host` in
+  [docker-compose.synology.yml](docker-compose.synology.yml) (the container
+  uses the NAS's own network stack, including its IPv6) — confirmed to
+  actually fix it.
 - Kinopoisk and sometimes IMDb block automated requests, falling back to manual entry.
 - A site with no dedicated provider and no usable og tags needs a manual title.
 - Requires JavaScript (add dialog, view/sort toggles, search).

@@ -3,15 +3,21 @@ services:
   watch-list:
     image: necroave/watch-list:0.0.23
     container_name: watch-list
-    ports:
-      - "${PORT:-3000}:${PORT:-3000}"
+    # Host networking instead of ports: the container uses the NAS's own
+    # network stack directly (including its IPv6) — without this, some
+    # AniLibria (aniliberty.top) releases serve different content over
+    # IPv4 due to an IPv4/IPv6 edge mismatch on Cloudflare's side, see
+    # "Known limitations" in README. The port is then listened on directly
+    # on the NAS itself — make sure the PORT below isn't already taken by
+    # DSM or another package.
+    network_mode: host
     volumes:
       - ./data:/data
     environment:
       # The port is set from the outside via the PORT env var (e.g. in a
       # .env file next to this one, or PORT=8080 docker compose up) — the
-      # same port is published and listened on inside the container, no
-      # other change needed.
+      # server listens on this same port directly on the NAS (see
+      # network_mode: host above).
       PORT: "${PORT:-3000}"
       # Optional: if left unset, the server generates a secret on first run
       # and stores it in the volume (./data/session-secret.txt) — it
