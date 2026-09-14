@@ -75,6 +75,10 @@ function toResult(primary, hostname) {
     description: primary.description || '',
     coverUrl: primary.coverUrl || null,
     genres: primary.genres || '',
+    // Set only by providers (currently AniLibria) that tried more than one
+    // host variant of the URL and found the given one unusable — the caller
+    // may prefer to persist this instead of the URL it was asked to fetch.
+    resolvedUrl: primary.resolvedUrl || null,
   };
 }
 

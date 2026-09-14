@@ -1,6 +1,6 @@
 # Watch List
 
-> Pre-release `0.0.23` — core functionality works and is covered by the
+> Pre-release `0.1.0` — core functionality works and is covered by the
 > test cases below, but the project isn't considered stable yet.
 
 A self-hosted tracker for things you plan to watch, read, or come back to.
@@ -15,14 +15,14 @@ docker compose up -d --build
 ```
 
 Or the prebuilt image (swap `build: .` for `image:
-necroave/watch-list:0.0.23` in `docker-compose.yml`):
+necroave/watch-list:0.1.0` in `docker-compose.yml`):
 
 ```bash
 docker run -d --name watch-list -p 3000:3000 \
   -v watch-list-data:/data \
   -e SESSION_SECRET="$(openssl rand -hex 32)" \
   -e ALLOW_REGISTRATIONS=false \
-  necroave/watch-list:0.0.23
+  necroave/watch-list:0.1.0
 ```
 
 Open `http://localhost:3000`. Data (SQLite) lives in the `watch-list-data`

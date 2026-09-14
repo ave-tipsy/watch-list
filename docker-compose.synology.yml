@@ -1,7 +1,7 @@
 version: "3"
 services:
   watch-list:
-    image: necroave/watch-list:0.0.23
+    image: necroave/watch-list:0.1.0
     container_name: watch-list
     # Host networking instead of ports: the container uses the NAS's own
     # network stack directly (including its IPv6) — without this, some

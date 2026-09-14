@@ -285,6 +285,21 @@ router.post('/', async (req, res) => {
     }
   }
 
+  // A provider (currently only AniLibria) may report that the URL it was
+  // asked to fetch didn't work, but a different host variant (www vs bare
+  // domain) did — persist the one that actually served the page instead of
+  // the literal input, so a later refetch/health-check hits the working host.
+  const finalUrl = meta.resolvedUrl || url;
+  if (finalUrl !== url) {
+    const existingResolved = db
+      .prepare('SELECT * FROM entries WHERE user_id = ? AND list_id = ? AND source_url = ?')
+      .get(req.session.userId, listId, finalUrl);
+    if (existingResolved) {
+      flashAddModal(req, { open: true, query, duplicate: existingResolved });
+      return res.redirect('/entries');
+    }
+  }
+
   const cover = await resolveCoverFields(meta.coverUrl);
   const safeTitle = truncate(meta.title, LIMITS.TITLE);
 
@@ -302,7 +317,7 @@ router.post('/', async (req, res) => {
       cover.coverBlob,
       cover.coverMime,
       truncate(meta.genres || null, LIMITS.TEXT),
-      url,
+      finalUrl,
       meta.sourceDomain
     );
   logAction('entries', 'add', req, ` id=${info.lastInsertRowid} title=${JSON.stringify(safeTitle)}`);

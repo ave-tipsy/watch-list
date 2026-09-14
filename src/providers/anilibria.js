@@ -59,7 +59,7 @@ async function fetchPage(url) {
   let lastError = null;
   try {
     page = await fetchGeneric(url);
-    if (usable(page)) return page;
+    if (usable(page)) return { page, url };
   } catch (e) {
     lastError = e; // keep trying the other host below before giving up
   }
@@ -69,7 +69,7 @@ async function fetchPage(url) {
   u.hostname = hasWww ? u.hostname.replace(/^www\./i, '') : `www.${u.hostname}`;
   try {
     const fallbackPage = await fetchGeneric(u.toString());
-    if (usable(fallbackPage)) return fallbackPage;
+    if (usable(fallbackPage)) return { page: fallbackPage, url: u.toString() };
   } catch (e) {
     lastError = e;
   }
@@ -79,14 +79,14 @@ async function fetchPage(url) {
   // the caller instead of silently returning nothing — that's the detail
   // that actually explains a failure in the logs.
   if (lastError) throw lastError;
-  return page;
+  return { page, url };
 }
 
 async function fetchByUrl(url) {
   // The id resolution (and genres below) go through AniLibria's API — if
   // that's unreachable, we still want the OG-based title/description/cover
   // to come through, just without genres.
-  const [page, id] = await Promise.all([fetchPage(url), resolveId(url).catch(() => null)]);
+  const [{ page, url: resolvedUrl }, id] = await Promise.all([fetchPage(url), resolveId(url).catch(() => null)]);
   if (!usable(page)) return null;
 
   const genres = id ? await fetchGenres(id).catch(() => '') : '';
@@ -95,6 +95,11 @@ async function fetchByUrl(url) {
     description: page.description || '',
     coverUrl: page.coverUrl,
     genres,
+    // Lets the caller persist the host that actually served the page — see
+    // fetchPage above: aniliberty.top's www vs bare hosts are inconsistently
+    // available, so the URL the user typed isn't necessarily the one worth
+    // keeping if the other form is what actually worked.
+    resolvedUrl: resolvedUrl !== url ? resolvedUrl : undefined,
   };
 }
 
